@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -107,7 +108,7 @@ func InsecureInputHandler(w http.ResponseWriter, r *http.Request) {
 	// tmpl.Execute(w, data)
 	tmpl := template.Must(template.New("form").Parse(formTemplate))
 	w.Header().Set("Content-Type", "text/html")
-	tmpl.Execute(w, template.HTML(data.Output))
+	tmpl.Execute(w, data)
 }
 
 // SecureInputHandler handles the secure input form.
@@ -132,6 +133,12 @@ func SecureInputHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, data)
 }
 
+func hellohandler(w http.ResponseWriter, r *http.Request) {
+	name := r.URL.Query().Get("name")
+	w.Header().Set("Content-Type", "text/html")
+	fmt.Fprintf(w, "Hello, %s!", name)
+}
+
 func main() {
 	mux := http.NewServeMux()
 
@@ -150,10 +157,12 @@ func main() {
 	// Register handlers for insecure and secure input
 	mux.HandleFunc("/insecure/input", InsecureInputHandler)
 	mux.HandleFunc("/secure/input", SecureInputHandler)
+	mux.HandleFunc("/hello", hellohandler)
 
 	// Start the server
 	log.Println("Starting server on port 8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
+
 }
